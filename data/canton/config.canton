@@ -3,4 +3,4 @@
 # adjust the ledger api configuration
 canton.participants.participant1.ledger-api.address=0.0.0.0
 # enable tracing
-#canton.monitoring.tracing.propagation = enabled
+canton.monitoring.tracing.propagation = enabled

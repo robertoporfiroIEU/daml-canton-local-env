@@ -20,7 +20,7 @@ services:
 
   postgres.database:
     # requried to keep this version
-    image: postgres:11
+    image: postgres:12
     container_name: postgres.database
     ports:
       - "${BASE_PORT:-40}32:5432"
@@ -77,12 +77,11 @@ services:
   connect.navigator:
     image: digitalasset/daml-sdk:${SDK_VERSION:-latest}
     container_name: connect.navigator
-    #platform: darwin/arm64
     environment:
       - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
-      - LOG_FILE=./data/logs/navigator.log
+      - LOG_FILE=./data/logs/navigator/navigator.log
     entrypoint: []
-    command: sh -c "./data/utils/wait_for_file.sh data/shared/parties.txt && daml ledger navigator --host connect.node --port 10011 --port ${BASE_PORT:-40}00 -c ./data/utils/navigator_dummy_config_remove_after_daml_1_9_0.conf"
+    command: sh -c "./data/utils/wait_for_file.sh data/shared/parties.txt && daml navigator server connect.node 10011 --feature-user-management=false"
     ports:
       - "127.0.0.1:${BASE_PORT:-40}00:${BASE_PORT:-40}00"
     volumes:
