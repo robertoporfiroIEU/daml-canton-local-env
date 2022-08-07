@@ -1,0 +1,13 @@
+FROM adoptopenjdk/openjdk14:jre-14.0.2_12-ubi-minimal
+
+ARG sdk_version=2.3.2
+
+ENV JAVA_TOOL_OPTIONS -Dfile.encoding=UTF8
+
+RUN mkdir /navigator
+
+COPY install-daml.sh /navigator
+RUN /navigator/install-daml.sh ${sdk_version}
+
+WORKDIR /navigator
+

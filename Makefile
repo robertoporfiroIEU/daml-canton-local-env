@@ -1,6 +1,6 @@
 # USAGE
 define USAGE
-Usage: make [help | up | down | clear]
+Usage: make [help | up | down | cleanup]
 endef
 export USAGE
 
@@ -15,5 +15,6 @@ up:
 down:
 	docker-compose -f docker-compose.yml down --remove-orphans $(c)
 
-
+cleanup:
+	./docker/clear-docker.sh $(c)
 
