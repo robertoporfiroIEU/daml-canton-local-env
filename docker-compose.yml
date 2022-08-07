@@ -27,7 +27,6 @@ services:
     environment:
       - POSTGRES_USER=canton
       - POSTGRES_PASSWORD=supersafe
-      - POSTGRES_DB=participant1
     command: [
       "-c" , "config_file=/data/utils/postgresql.conf"
     ]
@@ -50,8 +49,12 @@ services:
     image: digitalasset/canton-${CANTON_TYPE:-open-source}:${CANTON_VERSION:-latest}
     container_name: connect.node
     ports:
-      - "127.0.0.1:${BASE_PORT:-40}11:10011"
-      - "127.0.0.1:${BASE_PORT:-40}12:10012"
+      # Canton Domain
+      #- "${BASE_PORT:-40}18:10018"
+      #- "${BASE_PORT:-40}19:10019"
+      # Canton Participant
+      - "${BASE_PORT:-40}11:10011"
+      - "${BASE_PORT:-40}12:10012"
     tty: true
     environment:
       - POSTGRES_HOST=postgres.database
@@ -59,11 +62,15 @@ services:
       - POSTGRES_PASSWORD=supersafe
       - CANTON_AUTO_APPROVE_AGREEMENTS=yes
       - CANTON_ALLOCATE_PARTIES=${CANTON_ALLOCATE_PARTIES:-alice;bob}
-      - CANTON_CONNECT_DOMAINS=${CANTON_CONNECT_DOMAINS:-mydomain#http://0.0.0.0:10018}
+      - CANTON_CONNECT_DOMAINS=${CANTON_CONNECT_DOMAINS:-domain1#http://0.0.0.0:10018}
       - JAVA_OPTS="-Xmx3G"
-    command: ["daemon", "--log-profile=container", "--log-file-name=./data/logs/canton/canton.log",
+    command: [
+      "daemon",
+      "--log-profile=container",
+      "--log-file-name=./data/logs/canton/canton.log",
       "-c" ,"data/canton/config.canton",
       "-c" ,"data/storage/postgres.conf",
+
       "-c" , "${CANTON_CONFIG:-data/canton/participant.conf,data/canton/domain.conf}",
       "--bootstrap=data/canton/bootstrap.canton"]
     volumes:
@@ -74,19 +81,63 @@ services:
       - postgres.database
       - connect.cleanup
 
-  connect.navigator:
-    image: digitalasset/daml-sdk:${SDK_VERSION:-latest}
-    container_name: connect.navigator
+  connect.json:
+    image: intellecteu/digitalasset/canton/daml-json-api:2.3.2
+    build:
+      context: json-api
+      dockerfile: Dockerfile
+    container_name: connect.json
+    ports:
+      - "127.0.0.1:${BASE_PORT:-40}75:7575"
     environment:
       - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
-      - LOG_FILE=./data/logs/navigator/navigator.log
-    entrypoint: []
-    command: sh -c "./data/utils/wait_for_file.sh data/shared/parties.txt && daml navigator server connect.node 10011 --feature-user-management=false"
-    ports:
-      - "127.0.0.1:${BASE_PORT:-40}00:${BASE_PORT:-40}00"
+      - LOG_FILE=./data/logs/json-api/json.log
+    #entrypoint: []
+    command: ["--config","./data/canton/json-api.conf"]
+    #command: sh -c "./data/utils/wait_for_file.sh data/shared/parties.txt && daml json-api --ledger-host connect.node --ledger-port 10011 --address 0.0.0.0 --port-file ./data/shared/json.port --http-port 4001 --allow-insecure-tokens --static-content \"prefix=static,directory=/home/daml/data/static-content\" --query-store-jdbc-config \"driver=org.postgresql.Driver,url=jdbc:postgresql://postgres.database:5432/jsonapi?&ssl=false,user=canton,password=supersafe,start-mode=create-and-start\""
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7575/readyz"]
+      interval: 30s
+      timeout: 10s
+      retries: 5    
     volumes:
-      - ./data:/home/daml/data
+      - ./data:/json-api/data
     depends_on:
       - connect.node
     links:
       - connect.node
+
+
+  #connect.navigator:
+  #  image: digitalasset/daml-sdk:${SDK_VERSION:-latest}
+  #  container_name: connect.navigator
+  #  platform: darwin/arm64
+  #  environment:
+  #    - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
+  #    - LOG_FILE=./data/logs/navigator/navigator.log
+  #  entrypoint: []
+  #  command: daml navigator server connect.node 10011 --port 4000 --feature-user-management=false
+  #  ports:
+  #    - "${BASE_PORT:-40}00:${BASE_PORT:-40}00"
+  #  volumes:
+  #    - ./data:/home/daml/data
+  #  depends_on:
+  #    - connect.node
+  #  links:
+  #    - connect.node
+
+################################################################################## DevOps Tools Dozzle ###############################################################################
+  # Dozzle - https://dozzle.dev
+  devops-dozzle:
+    image: amir20/dozzle:latest
+    container_name: devops-dozzle
+    deploy:
+      resources:
+        limits:
+          cpus: 0.1
+          memory: 56M
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "8888:8080"
+################################################################################## DevOps Tools Dozzle ###############################################################################

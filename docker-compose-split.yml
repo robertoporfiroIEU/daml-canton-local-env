@@ -1,0 +1,141 @@
+#
+# Copyright 2022 Digital Asset (Switzerland) GmbH and/or its affiliates
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+version: '3'
+
+# ------------------------------------------------------------
+# demo participant deployment
+#
+# this deployment sets up
+# - postgres database
+# - canton domain1
+# - canton participant1
+# ------------------------------------------------------------
+
+volumes:
+  pgdata:
+
+services:
+
+  postgres.database:
+    # requried to keep this version
+    image: postgres:12
+    container_name: postgres.database
+    ports:
+      - "${BASE_PORT:-40}32:5432"
+    environment:
+      - POSTGRES_USER=canton
+      - POSTGRES_PASSWORD=supersafe
+    command: [
+      "-c" , "config_file=/data/utils/postgresql.conf"
+    ]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./data/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - ./data:/data:cached
+
+  connect.cleanup:
+    image: digitalasset/canton-${CANTON_TYPE:-open-source}:${CANTON_VERSION:-latest}
+    container_name: connect.cleanup
+    entrypoint: []
+    command: sh ./utils/cleanup.sh
+    volumes:
+      - ./data/utils:/canton/utils
+      - ./data/shared:/canton/shared
+      - ./data/logs:/canton/logs
+
+  connect.node:
+    image: digitalasset/canton-${CANTON_TYPE:-open-source}:${CANTON_VERSION:-latest}
+    container_name: connect.node
+    ports:
+      - "127.0.0.1:${BASE_PORT:-40}18:10018"
+      - "127.0.0.1:${BASE_PORT:-40}19:10019"
+    tty: true
+    environment:
+      - POSTGRES_HOST=postgres.database
+      - POSTGRES_USER=canton
+      - POSTGRES_PASSWORD=supersafe
+      - CANTON_AUTO_APPROVE_AGREEMENTS=yes
+      - JAVA_OPTS="-Xmx3G"
+    command: [
+        "daemon",
+        "--log-profile=container",
+        #"--log-file-name=./data/logs/canton/canton.log",
+        "-c" ,"data/canton/config.canton",
+        "-c" ,"data/storage/postgres.conf",
+        "-c" , "${CANTON_CONFIG:-data/canton/domain.conf}"
+      ]
+    volumes:
+      - ./data:/canton/data
+    links:
+      - postgres.database
+    depends_on:
+      - postgres.database
+      - connect.cleanup
+
+  connect.participant:
+    image: digitalasset/canton-${CANTON_TYPE:-open-source}:${CANTON_VERSION:-latest}
+    container_name: connect.participant
+    ports:
+      - "127.0.0.1:${BASE_PORT:-40}11:10011"
+      - "127.0.0.1:${BASE_PORT:-40}12:10012"
+    tty: true
+    environment:
+      - POSTGRES_HOST=postgres.database
+      - POSTGRES_USER=canton
+      - POSTGRES_PASSWORD=supersafe
+      - CANTON_AUTO_APPROVE_AGREEMENTS=yes
+      - CANTON_ALLOCATE_PARTIES=${CANTON_ALLOCATE_PARTIES:-alice;bob}
+      - CANTON_CONNECT_DOMAINS=${CANTON_CONNECT_DOMAINS:-domain1#http://connect.node:10018}
+      - JAVA_OPTS="-Xmx3G"
+    command: [
+        "daemon",
+        "--log-profile=container",
+        "--log-file-name=./data/logs/canton/participant/participant1.log",
+        "-c" ,"data/storage/postgres.conf",
+        "-c" , "${CANTON_CONFIG:-data/canton/participant.conf}",
+        "--bootstrap=data/canton/bootstrap.canton"
+      ]
+    volumes:
+      - ./data:/canton/data
+    links:
+      - postgres.database
+      - connect.node
+    depends_on:
+      - postgres.database
+      - connect.node
+
+  connect.navigator:
+    image: digitalasset/daml-sdk:${SDK_VERSION:-latest}
+    container_name: connect.navigator
+    environment:
+      - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
+      #- LOG_FILE=./data/logs/navigator/navigator.log
+    entrypoint: []
+    command: daml navigator server connect.participant 10011 --feature-user-management=false
+    ports:
+      - "127.0.0.1:${BASE_PORT:-40}00:${BASE_PORT:-40}00"
+    volumes:
+      - ./data:/home/daml/data
+    depends_on:
+      - connect.participant
+    links:
+      - connect.participant
+
+################################################################################## DevOps Tools Dozzle ###############################################################################
+  # Dozzle - https://dozzle.dev
+  devops-dozzle:
+    image: amir20/dozzle:latest
+    container_name: devops-dozzle
+    deploy:
+      resources:
+        limits:
+          cpus: 0.1
+          memory: 56M
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - "0.0.0.0:8888:8080"
+################################################################################## DevOps Tools Dozzle ###############################################################################
