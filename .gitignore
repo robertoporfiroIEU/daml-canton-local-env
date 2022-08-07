@@ -1,5 +1,8 @@
 /.daml
-/log/*
+
 *.log
+*.gz
 *.jar
-**/.DS_Store
+
+*.jwt
+*.txt

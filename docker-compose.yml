@@ -10,20 +10,25 @@ version: '3'
 #
 # this deployment sets up
 # - postgres database
-# - canton participant
+# - canton domain & participant
+# - json-api
 # ------------------------------------------------------------
 
 volumes:
   pgdata:
 
 services:
-
   postgres.database:
     # requried to keep this version
     image: postgres:12
     container_name: postgres.database
     ports:
       - "${BASE_PORT:-40}32:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
     environment:
       - POSTGRES_USER=canton
       - POSTGRES_PASSWORD=supersafe
@@ -83,20 +88,19 @@ services:
 
   connect.json:
     image: intellecteu/digitalasset/canton/daml-json-api:2.3.2
+    container_name: connect.json
     build:
       context: json-api
       dockerfile: Dockerfile
-    container_name: connect.json
     ports:
-      - "127.0.0.1:${BASE_PORT:-40}75:7575"
+      - "${BASE_PORT:-40}75:7575"
     environment:
       - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
       - LOG_FILE=./data/logs/json-api/json.log
     #entrypoint: []
     command: ["--config","./data/canton/json-api.conf"]
-    #command: sh -c "./data/utils/wait_for_file.sh data/shared/parties.txt && daml json-api --ledger-host connect.node --ledger-port 10011 --address 0.0.0.0 --port-file ./data/shared/json.port --http-port 4001 --allow-insecure-tokens --static-content \"prefix=static,directory=/home/daml/data/static-content\" --query-store-jdbc-config \"driver=org.postgresql.Driver,url=jdbc:postgresql://postgres.database:5432/jsonapi?&ssl=false,user=canton,password=supersafe,start-mode=create-and-start\""
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7575/readyz"]
+      test: ["CMD", "curl", "-f", "http://0.0.0.0:7575/readyz"]
       interval: 30s
       timeout: 10s
       retries: 5    
@@ -139,5 +143,5 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
-      - "8888:8080"
+      - "${BASE_PORT:-40}80:8080"
 ################################################################################## DevOps Tools Dozzle ###############################################################################
