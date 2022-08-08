@@ -111,28 +111,28 @@ services:
     links:
       - connect.node
 
-  # 
-  #connect.navigator:
-  #  image: intellecteu/digitalasset/daml/navigator:${SDK_VERSION:-latest}
-  #  platform: linux/amd64
-  #  container_name: connect.navigator
-  #  build:
-  #    context: docker/navigator
-  #    dockerfile: Dockerfile
-  #  environment:
-  #    - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
-  #    - LOG_FILE=./data/logs/navigator/navigator.log
-  #  entrypoint: []
-  #  command: ["daml", "navigator", "server", "connect.node", "10011", "--port", "4000"]
-  #  #command: daml navigator server connect.node 10011 --port 4000 --feature-user-management=false
-  #  ports:
-  #    - "${BASE_PORT:-40}00:${BASE_PORT:-40}00"
-  #  volumes:
-  #    - ./data:/home/daml/data
-  #  depends_on:
-  #    - connect.node
-  #  links:
-  #    - connect.node
+  # TODO: Fix the local image to run on MAC M1
+  connect.navigator:
+    image: digitalasset/daml-sdk:${SDK_VERSION:-latest}
+    #image: intellecteu/digitalasset/daml/navigator:${SDK_VERSION:-latest}
+    #platform: linux/amd64
+    container_name: connect.navigator
+    #build:
+    #  context: docker/navigator
+    #  dockerfile: Dockerfile
+    environment:
+      - _JAVA_OPTIONS="-Dlogback.configurationFile=./data/utils/sdk-logback.xml"
+      - LOG_FILE=./data/logs/navigator/navigator.log
+    entrypoint: []
+    command: ["daml", "navigator", "server", "connect.node", "10011", "--port", "4000", "--feature-user-management=false"]
+    ports:
+      - "${BASE_PORT:-40}00:${BASE_PORT:-40}00"
+    volumes:
+      - ./data:/home/daml/data
+    depends_on:
+      - connect.node
+    links:
+      - connect.node
 
 ################################################################################## DevOps Tools Dozzle ###############################################################################
   # Dozzle - https://dozzle.dev
