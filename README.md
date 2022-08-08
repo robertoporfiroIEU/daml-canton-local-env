@@ -95,7 +95,7 @@ You can drop your static content to `data/static-content` and access it on the J
 ## Starting
 
 Enter the example directory where you find the `docker-compose.yml` and run the compose 
-commands there: `docker-compose up`
+commands there: `make up`
 
 Please note that the Docker user must be able to write to the `data` directory (and its subdirectories).
 If you just need to fix the permissions for a demo, you can use ``chmod -R 777 data``
