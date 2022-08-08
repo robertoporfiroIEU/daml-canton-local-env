@@ -122,33 +122,10 @@ There are a few jwt tokens generated on the fly for all local parties which can 
 curl -X GET -H "Content-Type: application/json" -H "Authorization: Bearer $(cat shared/alice.jwt)" localhost:4001/v1/query
 ```
 
-## Inspecting
-
-You can access the Canton console using the `bin/node-console.sh` script. 
-
-## Resetting
-
-The postgres data is stored on the Docker pgdata volume. You need to wipe this Docker volume to reset your deployment.
-
-A quick and easy way to reset the entire deployment is to prune the volumes and containers:
-
-`docker container prune -f && docker volume prune -f`
-
-You can also remove everything, including any downloaded image:
-
-`docker system prune -a`
-
-
 ## Remote Administration
 
 Canton allows you to connect domains, add parties, and add new DAML application DARs at runtime.
 The nodes expose an admin-api and canton itself can be used as a client to perform these actions remotely.
-
-[`remote.conf`](./remote.conf) contains configuration to point a local client at these remote nodes. We can launch a canton container with this config to start an interactive console using:
-
-```sh
-docker run --network host -it --rm -v "./data/canton/remote:/canton/remote" digitalasset/canton-open-source:2.3.2 --config canton/remote/participant1.conf,canton/remote/domain1.conf
-```
 
 You can access the Canton console using the `bin/node-console.sh` script. 
 
