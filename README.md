@@ -4,6 +4,7 @@ Use makefile: <br/>
 
 1. Start the local environment (Docker) ````make up````
 2. Shutdown the local environment (Docker) ````make down````
+3. Remove all containers and images (Docker) ````make cleanup````
 
 ### Makefile 
 | Command        | Description           |
@@ -32,9 +33,9 @@ do not change the ports, as some node services depend on it.
 
 There are a few environment variables that control the versions used:
 ```
-    CANTON_VERSION=latest
-    SDK_VERSION=1.18.1
-    CANTON_TYPE=community    
+    CANTON_VERSION=2.3.2
+    SDK_VERSION=2.3.2
+    CANTON_TYPE=open-source    
 ```
 You can set them before starting up to define which docker images will be used in your deployment.
 
@@ -47,7 +48,7 @@ You can allocate new parties by defining an environment variable (party hints se
 ```
 and you can set domain connections (also separated using `;`) 
 ```
-    CANTON_CONNECT_DOMAINS="mydomain#http://localhost:10018"
+    CANTON_CONNECT_DOMAINS="domain1#http://localhost:10018"
 ```
 
 Please note that the domain connections will get the priority equivalent to their
