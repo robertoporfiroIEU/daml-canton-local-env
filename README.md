@@ -28,8 +28,7 @@ it contains
 - connect node with ledger api on 4011
 - a local domain (not exposed outside of the docker environment) 
 - navigator at http://localhost:4000
-- json api at http://localhost:4001
-- trigger service at http://localhost:4002
+- json api at http://localhost:4075 (json-api health check - http://localhost:4075/readyz)
 - a postgres database at port 4032
 
 ## Configuring
