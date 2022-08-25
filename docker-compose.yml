@@ -136,16 +136,12 @@ services:
 
 ################################################################################## DevOps Tools Dozzle ###############################################################################
   # Dozzle - https://dozzle.dev
-  devops-dozzle:
-    image: amir20/dozzle:latest
-    container_name: devops-dozzle
-    deploy:
-      resources:
-        limits:
-          cpus: 0.1
-          memory: 56M
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    ports:
-      - "${BASE_PORT:-40}80:8080"
+  # Uncomment this component if want use this tool in orde to see the logs 
+  #devops-dozzle:
+  #  image: amir20/dozzle:latest
+  #  container_name: devops-dozzle
+  #  volumes:
+  #    - /var/run/docker.sock:/var/run/docker.sock
+  #  ports:
+  #    - "${BASE_PORT:-40}80:8080"
 ################################################################################## DevOps Tools Dozzle ###############################################################################
