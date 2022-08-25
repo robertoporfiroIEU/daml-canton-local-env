@@ -133,4 +133,4 @@ You can access the Canton console using the `bin/node-console.sh` script.
 e.g.
 daml ledger upload-dar --host <ledger_api_host> --port <ledger_api_port> ${CI_PROJECT_DIR}/daml-ledger-0.0.1.dar
 
-daml ledger upload-dar --host localhost --port 4011 data/dar/voting-0.0.1.dar
+daml ledger upload-dar --host localhost --port 4075 data/dar/voting-0.0.1.dar
