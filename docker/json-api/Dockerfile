@@ -10,8 +10,9 @@ ENV JAVA_TOOL_OPTIONS -Dfile.encoding=UTF8
 
 RUN mkdir /json-api
 
+COPY http-json-2.3.2.jar /json-api
+
 WORKDIR /json-api
 
-RUN curl https://github.com/digital-asset/daml/releases/download/v2.3.2/http-json-2.3.2.jar
 
 ENTRYPOINT ["java", "-Djava.security.egd=file:/dev/./urandom","-jar","http-json-2.3.2.jar"]
