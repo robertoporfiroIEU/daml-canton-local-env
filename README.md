@@ -4,6 +4,7 @@ Be sure you have the following installed:
 - docker 
 - docker-compose
 - make
+- http-json-X.X.X.jar - (donwload and save on folder docker/json-api) - https://github.com/digital-asset/daml/releases/download/v2.3.2/http-json-2.3.2.jar
 
 ## Usage
 Use makefile: <br/>
